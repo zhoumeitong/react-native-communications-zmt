@@ -32,7 +32,7 @@ RCT_EXPORT_MODULE()
 }
 
 
-#pragma mark --------打电话 
+#pragma mark --------打电话
 
 RCT_EXPORT_METHOD(call:(NSString *)phoneNumber :(RCTResponseSenderBlock)completion) {
     NSURL *phoneNumberURL = [NSURL URLWithString:[NSString stringWithFormat:@"tel:%@", phoneNumber]];
@@ -51,7 +51,6 @@ RCT_EXPORT_METHOD(call:(NSString *)phoneNumber :(RCTResponseSenderBlock)completi
     }
     
 }
-
 
 #pragma mark --------发短信
 
@@ -154,24 +153,44 @@ RCT_EXPORT_METHOD(openContacts:(RCTResponseSenderBlock)completion)
  */
 - (void)contactPicker:(CNContactPickerViewController *)picker didSelectContactProperty:(CNContactProperty *)contactProperty{
     
-    //    NSLog(@"%@",contactProperty);
     CNContact *contact = contactProperty.contact;
-    for (CNLabeledValue *labeledValue in contact.phoneNumbers) {
-        
-        CNPhoneNumber *phoneNumber = labeledValue.value;
-        NSString *phoneNO = phoneNumber.stringValue;
-        if ([phoneNO hasPrefix:@"+"]) {
-            phoneNO = [phoneNO substringFromIndex:3];
+    NSString *name = [NSString stringWithFormat:@"%@%@",contact.familyName,contact.givenName];
+    NSString *res;
+    //根据identifier判断点击的是哪一条信息（电话号或邮箱）
+    if ([contactProperty.key isEqualToString:@"phoneNumbers"]) {
+        for (CNLabeledValue *labeledValue in contact.phoneNumbers) {//电话
+            if([contactProperty.identifier isEqualToString:labeledValue.identifier]){
+                CNPhoneNumber *phoneNumber = labeledValue.value;
+                NSString *phoneNO = phoneNumber.stringValue;
+                if ([phoneNO hasPrefix:@"+"]) {
+                    phoneNO = [phoneNO substringFromIndex:3];
+                }
+                phoneNO = [phoneNO stringByReplacingOccurrencesOfString:@"-" withString:@""];
+                //                NSLog(@"%@", phoneNO);
+                res = phoneNO;
+                
+            }
+        }
+    }else if([contactProperty.key isEqualToString:@"emailAddresses"]){
+        for (CNLabeledValue *labeledValue in contact.emailAddresses) {//邮箱
+            if([contactProperty.identifier isEqualToString:labeledValue.identifier]){
+                NSString *emailAddress = labeledValue.value;
+                res = emailAddress;
+                
+            }
+            
         }
         
-        phoneNO = [phoneNO stringByReplacingOccurrencesOfString:@"-" withString:@""];
-        NSLog(@"%@", phoneNO);
-        if (self.completion) {
-            self.completion(@[phoneNO]);
-        }
-        
-        self.completion = nil;
     }
+    
+    
+    //    NSLog(@"%@--------%@", name,res);
+    if (self.completion) {
+        self.completion(@[name,res]);
+    }
+    
+    self.completion = nil;
+    
 }
 
 - (void)contactPickerDidCancel:(CNContactPickerViewController *)picker
@@ -191,6 +210,7 @@ RCT_EXPORT_METHOD(openContacts:(RCTResponseSenderBlock)completion)
 #pragma mark -------- ABPeoplePickerNavigationControllerDelegate (ios8)
 
 - (void)peoplePickerNavigationController:(ABPeoplePickerNavigationController *)peoplePicker didSelectPerson:(ABRecordRef)person property:(ABPropertyID)property identifier:(ABMultiValueIdentifier)identifier {
+    
     ABMultiValueRef phone = ABRecordCopyValue(person, kABPersonPhoneProperty);
     long index = ABMultiValueGetIndexForIdentifier(phone,identifier);
     NSString *phoneNO = (__bridge NSString *)ABMultiValueCopyValueAtIndex(phone, index);
@@ -200,9 +220,11 @@ RCT_EXPORT_METHOD(openContacts:(RCTResponseSenderBlock)completion)
     }
     
     phoneNO = [phoneNO stringByReplacingOccurrencesOfString:@"-" withString:@""];
-    NSLog(@"%@", phoneNO);
+    CFStringRef anFullName = ABRecordCopyCompositeName(person);
+    NSString *name = [NSString stringWithFormat:@"%@",anFullName];
+    //    NSLog(@"%@", phoneNO);
     if (self.completion) {
-        self.completion(@[phoneNO]);
+        self.completion(@[name,phoneNO]);
     }
     
     self.completion = nil;
@@ -234,14 +256,15 @@ RCT_EXPORT_METHOD(openContacts:(RCTResponseSenderBlock)completion)
     }
     
     phoneNO = [phoneNO stringByReplacingOccurrencesOfString:@"-" withString:@""];
-    NSLog(@"%@", phoneNO);
+    CFStringRef anFullName = ABRecordCopyCompositeName(person);
+    NSString *name = [NSString stringWithFormat:@"%@",anFullName];
+    //    NSLog(@"%@", phoneNO);
     if (self.completion) {
-        self.completion(@[phoneNO]);
+        self.completion(@[name,phoneNO]);
     }
     
     self.completion = nil;
     [peoplePicker dismissViewControllerAnimated:YES completion:nil];
-    return NO;
     return YES;
 }
 

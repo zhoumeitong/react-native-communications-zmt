@@ -43,9 +43,10 @@ class CommunicationView extends Component {
     }
 
     openContacts() {
-        Communication.openContacts((res) => {
+        Communication.openContacts((name,res) => {
            if (res) {
             AlertIOS.alert(res);
+            AlertIOS.alert(name);
            }
         });
     }
