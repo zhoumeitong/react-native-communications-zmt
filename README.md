@@ -70,9 +70,10 @@ AlertIOS.alert(res);
 }
 
 openContacts() {
-Communication.openContacts((res) => {
+Communication.openContacts((name,res) => {
 if (res) {
 AlertIOS.alert(res);
+AlertIOS.alert(name);
 }
 });
 }
