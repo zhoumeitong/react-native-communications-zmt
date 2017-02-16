@@ -5,10 +5,10 @@
  */
 
 import React, { Component } from 'react';
-import { NativeModules } from 'react-native';
+// import { NativeModules } from 'react-native';
 
-
-var Communication = NativeModules.Communication;
+import Communication from 'react-native-Communication';
+// var Communication = NativeModules.Communication;
 
 
 import {
