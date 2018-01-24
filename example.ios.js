@@ -5,12 +5,6 @@
  */
 
 import React, { Component } from 'react';
-// import { NativeModules } from 'react-native';
-
-import Communication from 'react-native-Communication';
-// var Communication = NativeModules.Communication;
-
-
 import {
   AppRegistry,
   StyleSheet,
@@ -23,7 +17,10 @@ import {
   NativeAppEventEmitter
 } from 'react-native';
 
-class CommunicationView extends Component {
+import Communication from 'react-native-communications-zmt';
+
+
+export default class CommunicationView extends Component {
   
 
     call() {
@@ -107,5 +104,3 @@ const styles = StyleSheet.create({
   
 });
 
-
-AppRegistry.registerComponent('TextReactNative', () => CommunicationView);

@@ -36,19 +36,29 @@ RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(call:(NSString *)phoneNumber :(RCTResponseSenderBlock)completion) {
     NSURL *phoneNumberURL = [NSURL URLWithString:[NSString stringWithFormat:@"tel:%@", phoneNumber]];
-    
-    if ([[UIApplication sharedApplication] canOpenURL:phoneNumberURL]) {
-        [[UIApplication sharedApplication] openURL:phoneNumberURL];
-    }
-    else {
-        UIAlertView *notPermittedAlertView = [[UIAlertView alloc] initWithTitle:@"Alert"
-                                                                        message:@"Your device doesn't support this feature."
-                                                                       delegate:nil
-                                                              cancelButtonTitle:@"OK"
-                                                              otherButtonTitles:nil];
-        
-        [notPermittedAlertView show];
-    }
+    dispatch_async(
+       dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+           dispatch_sync(dispatch_get_main_queue(), ^{
+               if ([[UIApplication sharedApplication] canOpenURL:phoneNumberURL]) {
+                   [[UIApplication sharedApplication] openURL:phoneNumberURL];
+               }
+               else {
+                   UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Alert" message:@"Your device doesn't support this feature." preferredStyle:UIAlertControllerStyleAlert];
+                   UIAlertAction *OKAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
+                   [alertController addAction:OKAction];
+                   [[self rootViewController] presentViewController:alertController animated:YES completion:nil];
+                   /*
+                   UIAlertView *notPermittedAlertView = [[UIAlertView alloc] initWithTitle:@"Alert"
+                                                                                   message:@"Your device doesn't support this feature."
+                                                                                  delegate:nil
+                                                                         cancelButtonTitle:@"OK"
+                                                                         otherButtonTitles:nil];
+                   
+                   [notPermittedAlertView show];
+                  */
+               }
+           });
+    });
     
 }
 
@@ -95,24 +105,30 @@ RCT_REMAP_METHOD(messageNumberWithMessage, messageNumber:(NSString *)phoneNumber
 
 RCT_EXPORT_METHOD(openContacts:(RCTResponseSenderBlock)completion)
 {
-    if (kIOS10) {
-        CNContactPickerViewController * contactVc = [[CNContactPickerViewController alloc]init];
-        contactVc.delegate = self;
-        contactVc.displayedPropertyKeys = @[CNContactPhoneNumbersKey];
-        [[self rootViewController] presentViewController:contactVc animated:YES completion:nil];
-        
-        
-    }else{
-        ABPeoplePickerNavigationController *peoplePicker = [[ABPeoplePickerNavigationController alloc] init];
-        peoplePicker.peoplePickerDelegate = self;
-        if(kIOS8){
-            peoplePicker.predicateForSelectionOfPerson = [NSPredicate predicateWithValue:false];
-        }
-        [[self rootViewController] presentViewController:peoplePicker animated:YES completion:nil];
-        
-    }
-    
-    self.completion = completion;
+    //从子线程切换到主线程
+    dispatch_async(
+       dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+           dispatch_sync(dispatch_get_main_queue(), ^{
+               if (kIOS10) {
+                   CNContactPickerViewController * contactVc = [[CNContactPickerViewController alloc]init];
+                   contactVc.delegate = self;
+                   contactVc.displayedPropertyKeys = @[CNContactPhoneNumbersKey];
+                   [[self rootViewController] presentViewController:contactVc animated:YES completion:nil];
+                   
+                   
+               }else{
+                   ABPeoplePickerNavigationController *peoplePicker = [[ABPeoplePickerNavigationController alloc] init];
+                   peoplePicker.peoplePickerDelegate = self;
+                   if(kIOS8){
+                       peoplePicker.predicateForSelectionOfPerson = [NSPredicate predicateWithValue:false];
+                   }
+                   [[self rootViewController] presentViewController:peoplePicker animated:YES completion:nil];
+                   
+               }
+               
+               self.completion = completion;
+           });
+    });
     
 }
 
