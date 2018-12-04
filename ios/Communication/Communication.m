@@ -43,10 +43,17 @@ RCT_EXPORT_METHOD(call:(NSString *)phoneNumber :(RCTResponseSenderBlock)completi
                    [[UIApplication sharedApplication] openURL:phoneNumberURL];
                }
                else {
+                   if (completion) {
+                       completion(@[@"This device does not support sending text messages"]);
+                   }
+                   
+                   /*
                    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Alert" message:@"Your device doesn't support this feature." preferredStyle:UIAlertControllerStyleAlert];
                    UIAlertAction *OKAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
                    [alertController addAction:OKAction];
                    [[self rootViewController] presentViewController:alertController animated:YES completion:nil];
+                    */
+                   
                    /*
                    UIAlertView *notPermittedAlertView = [[UIAlertView alloc] initWithTitle:@"Alert"
                                                                                    message:@"Your device doesn't support this feature."
